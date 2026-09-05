@@ -429,7 +429,8 @@ resolve_source_version() {
         if curl -fsSL --connect-timeout 8 --max-time 20 -o "$fetched" "$url" 2>/dev/null \
            || wget -q -T 8 -O "$fetched" "$url" 2>/dev/null; then
             manifest="$fetched"
-            ok "已从 ${SOURCE_REPO} 拉取源码清单"
+            # 注意：不要在此用 log/ok（会污染 $(resolve_source_version) 的 stdout 捕获）
+            echo -e "\033[1;32m[OK]\033[0m 已从 ${SOURCE_REPO} 拉取源码清单" | tee -a "$LOG_FILE" >&2
         fi
     fi
     [[ -f "$manifest" ]] || return 1
