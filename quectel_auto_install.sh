@@ -67,8 +67,8 @@ QUALCOMM_VID="05c6"                 # UC15/UC20/EC20-MDM9215 use Qualcomm's VID
 # Set PREBUILT_REPO (or --prebuilt-repo) to a GitHub "owner/repo" whose release
 # assets are named  quectel-usb-<uname -r>-<uname -m>.tar.gz  and contain
 # option.ko / usb_wwan.ko / qcserial.ko  (see make_release_asset.sh).
-# Leave empty to disable the download path.
-PREBUILT_REPO="${PREBUILT_REPO:-}"
+# Defaults to this project's source repository; override via env or --prebuilt-repo.
+PREBUILT_REPO="${PREBUILT_REPO:-louishuangQ/Quectel_Linux_USB-driver_installer}"
 PREBUILT_TAG="${PREBUILT_TAG:-quectel-usb-2.0}"
 
 # On-demand SOURCE download (lightweight mode: sources live on GitHub, not here).
@@ -420,6 +420,18 @@ try_download_prebuilt() {
 resolve_source_version() {
     local manifest="$SOURCE_MANIFEST"
     [[ -f "$manifest" ]] || manifest="$SOURCE_MANIFEST_INSTALLED"
+    # 本地无清单时，从仓库拉取（保证「只拷一个脚本」也能用）
+    if [[ ! -f "$manifest" && -n "$SOURCE_REPO" ]]; then
+        local url fetched
+        url="https://raw.githubusercontent.com/${SOURCE_REPO}/main/sources-manifest.txt"
+        fetched="/var/cache/quectel-usb/sources-manifest.txt"
+        install -d "$(dirname "$fetched")"
+        if curl -fsSL --connect-timeout 8 --max-time 20 -o "$fetched" "$url" 2>/dev/null \
+           || wget -q -T 8 -O "$fetched" "$url" 2>/dev/null; then
+            manifest="$fetched"
+            ok "已从 ${SOURCE_REPO} 拉取源码清单"
+        fi
+    fi
     [[ -f "$manifest" ]] || return 1
 
     local kmm kpatch
