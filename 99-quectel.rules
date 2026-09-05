@@ -1,0 +1,38 @@
+# /etc/udev/rules.d/99-quectel.rules
+# ============================================================================
+# Trigger the Quectel driver QUICK-LOAD when a Quectel module is plugged in.
+#
+# This rule ONLY runs --quick-load (modprobe + bind, ~2-3 s). The full
+# compilation must be done ONCE manually via:
+#     sudo quectel_auto_install.sh --first-time
+# which installs the launcher to /usr/local/bin/quectel_auto_install.sh (the
+# path used below) and copies this rule into place.
+#
+# Why not full install via udev?
+#   - udev RUN+ has a ~120 s timeout; a kernel module build takes longer
+#   - udev runs in a restricted environment without a terminal
+# ============================================================================
+
+# Quectel VID 2c7c: match all Quectel modules (the driver has a vendor-wide match).
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="2c7c", \
+    RUN+="/usr/local/bin/quectel_auto_install.sh --quick-load"
+
+# Quectel modules that use Qualcomm VID 05c6: UC15 (9090), UC20 (9003), EC20 MDM9215 (9215).
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="05c6", ATTR{idProduct}=="9090|9003|9215", \
+    RUN+="/usr/local/bin/quectel_auto_install.sh --quick-load"
+
+# Let users in the "dialout" group access the serial ports.
+ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="2c7c", \
+    GROUP="dialout", MODE="0660"
+ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="05c6", ATTRS{idProduct}=="9090|9003|9215", \
+    GROUP="dialout", MODE="0660"
+
+# Convenience symlinks (best-effort: ttyUSB numbering may differ per module).
+ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="2c7c", \
+    KERNEL=="ttyUSB0", SYMLINK+="quectel_dm"
+ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="2c7c", \
+    KERNEL=="ttyUSB1", SYMLINK+="quectel_gps"
+ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="2c7c", \
+    KERNEL=="ttyUSB2", SYMLINK+="quectel_at"
+ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="2c7c", \
+    KERNEL=="ttyUSB3", SYMLINK+="quectel_modem"

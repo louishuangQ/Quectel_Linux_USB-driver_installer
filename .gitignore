@@ -1,0 +1,12 @@
+# 大文件 / 生成物 —— 不进入仓库（轻量化）
+sources/
+release-assets/
+*.zip
+*.tar.gz
+*.ko
+*.o
+*.mod
+*.mod.c
+
+# 临时/抓取文件
+*modin.txt
