@@ -23,7 +23,7 @@ sudo ./quectel_auto_install.sh
 **看到这行就是成功了：**
 
 ```
-[OK]  设备已就绪 ✅
+[OK]  设备已就绪
 ```
 
 ---
